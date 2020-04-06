@@ -6,6 +6,11 @@ Add the pattern toolbar at the end.
 
 For the parts 1-3 they have been fully implemented and deserve full grade.
 
+
+This code is written by two other contributors.
+
+I managed to make some changes to the design and functionalities.
+
 To run on command prompt:
 1. cd directory.
 2. npm install
