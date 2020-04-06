@@ -1,24 +1,37 @@
 
 <!DOCTYPE html>
-<html ng-app="canvasApp">
+<html ng-app="gameOfLifeApp">
+</div align="center">
+  </div>
+  <div class="row">
+      <div class="col-md-12" align="center">
+          <h2><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank">Rules</a></h2>
+          <ol>
+              <li>Any live cell with fewer than 2 live neighbours dies (underpopulation).</li>
+              <li>Any live cell with 2 or 3 live neighbours lives on to the next generation.</li>
+              <li>Any live cell with more than 3 live neighbours dies (overpopulation).</li>
+              <li>Any dead cell with exactly 3 live neighbours becomes a live cell (reproduction).</li>
+          </ol>
+      </div>
+  </div>
 <head>
-    <title>Collaborative canvas</title>
-    
+    <title>Game of life</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
-          
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/0.4.12/toaster.min.css" />
-    
+
     <style>
         h2 {
             font-size: 20px;
         }
-        
+
         .bordered {
             border: 1px solid black;
         }
     </style>
-    
+
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular-animate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.1/ui-bootstrap.min.js"></script>
@@ -28,128 +41,9 @@
     <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
 
     <script>
-        angular.module('canvasApp', ['ui.bootstrap', 'luegg.directives', 'toaster']);
-        
-        angular.module('canvasApp').directive('drawingCanvas', ['$document', '$window', function($document, $window) {
-            return {
-                restrict: 'A',
-                scope: { 
-                    finishedStrokeHandler: '&finishedStrokeHandler',
-                    drawingDisabled: '&drawingDisabled',
-                    strokes: '=strokes',
-                    lineWidth: '=lineWidth',
-                    lineColor: '=lineColor'
-                },
-                link: function($scope, $element, $attrs) {
-                
-                    $scope.$watch('strokes', function(newValue, oldValue) {                        
-                        // Clear canvas
-                        if (newValue.length == 0) {
-                            $element[0].width = $element[0].width;
-                        }
-                        // Draw last stroke
-                        else if (newValue.length == oldValue.length + 1) {
-                            drawStroke($scope.strokes[$scope.strokes.length - 1]);
-                        }
-                        // Draw all strokes again
-                        else if (oldValue.length != newValue.length) {
-                            $element[0].width = $element[0].width;
-                            
-                            for (i = 0; i < $scope.strokes.length; i++) {
-                                drawStroke($scope.strokes[i]);
-                            }
-                        }
-                    }, true);
-                
-                    var cursorData = [];
-                    var mouseDown = false;
-                    
-                    function drawStroke (stroke) {
-                        var context = $element[0].getContext('2d');
+        angular.module('gameOfLifeApp', ['ui.bootstrap', 'luegg.directives', 'toaster']);
 
-                        context.lineJoin = "round";
-                        context.strokeStyle = stroke.lineColor;
-                        context.lineWidth = stroke.lineWidth;
-
-                        for (var i = 0; i < stroke.cursorData.length; i++) {
-                        
-                            // This is the penultimate item
-                            if (i == stroke.cursorData.length - 1) {
-                                return;
-                            }
-                            
-                            context.beginPath();
-                            
-                            // Move to cursorData[i]
-                            context.moveTo(stroke.cursorData[i].cursorX, stroke.cursorData[i].cursorY);
-
-                            // Create line from there to cursorData[i + 1]
-                            context.lineTo(stroke.cursorData[i + 1].cursorX, stroke.cursorData[i + 1].cursorY);
-                            
-                            context.closePath();
-                            context.stroke();
-                        }
-                    };
-                
-                    $element.on('mousedown', function(event) {
-                        if ($scope.drawingDisabled()) {
-                            return;
-                        }
-
-						mouseDown = true;
-                        
-                        cursorData.push({
-                            cursorX: event.offsetX,
-                            cursorY: event.offsetY
-                        });
-                    });
-
-                    $element.on('mousemove', function(event) {
-                        if ($scope.drawingDisabled()) {
-                            return;
-                        }
-                        
-						if (mouseDown) {
-                            cursorData.push({
-                                cursorX: event.offsetX,
-                                cursorY: event.offsetY
-                            });
-                        
-							drawStroke({
-                                cursorData: cursorData,
-                                lineColor: $scope.lineColor,
-                                lineWidth: $scope.lineWidth
-                            });
-						}
-                    });
-                    
-                    $element.on('mouseup', mouseUpOrLeave); 
-                    $element.on('mouseleave', mouseUpOrLeave);
-                    
-                    function mouseUpOrLeave(event) {
-                        if ($scope.drawingDisabled()) {
-                            return;
-                        }
-                        
-                        if (!mouseDown) {
-                            return;
-                        }
-                        
-						mouseDown = false;
-						
-                        if ($scope.finishedStrokeHandler()) {
-                            $scope.finishedStrokeHandler()(cursorData);
-                        }
-                        
-                        // Reset cursorData
-                        cursorData = [];
-                    };
-                }
-            };
-
-        }]);
-        
-        angular.module('canvasApp').directive('ngEnter', function () {
+        angular.module('gameOfLifeApp').directive('ngEnter', function () {
             return function (scope, element, attrs) {
                 element.bind("keydown keypress", function (event) {
                     if (event.which === 13) {
@@ -162,8 +56,8 @@
                 });
             };
         });
-        
-        angular.module('canvasApp').controller('mainController', ['$scope', '$http', '$window', 'toaster', function ($scope, $http, $window, toaster) {
+
+        angular.module('gameOfLifeApp').controller('mainController', ['$scope', '$http', '$window', 'toaster', function ($scope, $http, $window, toaster) {
 
             $scope.socket = null;
             $scope.currentUser = {};
@@ -171,14 +65,28 @@
             $scope.newMessageBody = "";
             $scope.users = [];
             $scope.messages = [];
-            $scope.strokes = [];
+            $scope.running = false;
+            $scope.grid = {
+                rows: 1,
+                cols: 1,
+                cells: [[false]]
+            };
             $scope.serverInfo = {};
-            $scope.lineWidth = 5;
-            $scope.lineColor = "#ca4422";
-            
+
+            $scope.createNumbersArray = function (length) {
+                var array = [];
+
+                for (var i = 0; i < length; i++) {
+                    array[i] = i;
+                }
+
+                return array;
+
+            };
+
             $scope.updateIsTyping = function (isTyping) {
                 $scope.updatingIsTyping = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/users/updateIsTyping",
@@ -188,165 +96,172 @@
                     },
                     data: {}
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.updatingIsTyping = false;
                 });
             };
-            
-            $scope.$watch('newMessageBody', function(newValue, oldValue) {                        
+
+            $scope.$watch('newMessageBody', function(newValue, oldValue) {
                 if (oldValue.length == 0 && newValue.length > 0) {
                     $scope.updateIsTyping(true);
                 } else if (oldValue.length > 0 && newValue.length == 0) {
                     $scope.updateIsTyping(false);
                 }
             }, true);
-            
+
             $scope.submitMessage = function () {
                 $scope.sendingMessage = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/messages/submit",
                     params: {
                         socketId: $scope.socket.id,
-                        body: $scope.newMessageBody                       
+                        body: $scope.newMessageBody
                     },
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
-                    
+
                     $scope.newMessageBody = "";
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.sendingMessage = false;
                 });
             };
-            
-            $scope.submitStroke = function (cursorData) {
-                $scope.sendingStroke = true;
-                
+
+            $scope.submitGridClick = function (x, y) {
+                $scope.sendingGridClick = true;
+
                 var httpRequest = $http({
-                    method: "post",
-                    url: "/api/strokes/submit",
+                    method: "get",
+                    url: "/api/grid/click",
                     params: {
-                        socketId: $scope.socket.id
+                        socketId: $scope.socket.id,
+                        x: x,
+                        y: y,
                     },
                     data: {
-                        lineWidth: $scope.lineWidth,
-                        lineColor: $scope.lineColor,
-                        cursorData: cursorData
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
                 });
-                
+
                 httpRequest['finally'](function() {
-                    $scope.sendingStroke = false;
+                    $scope.sendingGridClick = false;
                 });
             };
-            
+
             $scope.connect = function () {
                 $scope.socket = io.connect();
-                
+
                 $scope.socket.on('connect', function() {
                     $scope.logged = true;
                     $scope.fetchUsers();
                     $scope.fetchMessages();
-                    $scope.fetchStrokes();
-                    
+                    $scope.fetchGrid();
+
                     $scope.socket.on("welcome", function(user) {
                         $scope.currentUser = user;
                         $scope.$apply()
                     });
-                    
+
                     $scope.socket.on("userChangedName", function(data) {
                         $scope.messages.push(data.message);
-                    
+
                         $scope.users = data.users;
                         $scope.$apply()
                     });
-                    
+
                     $scope.socket.on("userUpdatedIsTyping", function(data) {
                         $scope.users = data.users;
                         $scope.$apply()
                     });
-                    
+
                     $scope.socket.on("userBroadcastsMessage", function(message) {
                         $scope.messages.push(message);
                         $scope.$apply()
                     });
-                    
-                    $scope.socket.on("userBroadcastsStroke", function(stroke) {
-                        $scope.strokes.push(stroke);
-                        $scope.$apply()
-                    });
-                    
-                    $scope.socket.on("userClearedMessages", function(data) {                   
+
+                    $scope.socket.on("userClearedMessages", function(data) {
                         $scope.messages.length = 0;
                         $scope.messages.push(data.message);
 
                         $scope.$apply()
                     });
-                    
-                    $scope.socket.on("userClearedStrokes", function(data) {
+
+                    $scope.socket.on("userClickedGrid", function(data) {
                         $scope.messages.push(data.message);
-                        
-                        $scope.strokes.length = 0;
+                        $scope.fetchGrid();
+
                         $scope.$apply()
                     });
-                    
-                    $scope.socket.on("userDeletedStroke", function(data) {
-                        $scope.messages.push(data.message);
-                        
-                        $scope.strokes = data.strokes;
+
+                    $scope.socket.on("gridUpdate", function(data) {
+                        $scope.grid = data.grid;
+
                         $scope.$apply()
                     });
-                    
+
+                    $scope.socket.on("userStartedSimulation", function(data) {
+                        $scope.messages.push(data.message);
+                        $scope.running = true;
+
+                        $scope.$apply()
+                    });
+
+                    $scope.socket.on("userPausedSimulation", function(data) {
+                        $scope.messages.push(data.message);
+                        $scope.running = false;
+
+                        $scope.$apply()
+                    });
+
                     $scope.socket.on("userConnected", function(data) {
                         $scope.messages.push(data.message);
-                        
+
                         $scope.users = data.users;
                         $scope.$apply()
                     });
-                    
+
                     $scope.socket.on("userDisconnected", function(data) {
                         $scope.messages.push(data.message);
-                        
+
                         $scope.users = data.users;
                         $scope.$apply()
                     });
                 });
-                
+
                 $scope.socket.on('connect_error', function() {
                 });
             };
 
             $scope.fetchUsers = function () {
                 $scope.fetchingUsers = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/users/list",
@@ -355,25 +270,25 @@
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
-                    
+
                     $scope.users = response.users;
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.fetchingUsers = false;
                 });
             };
-            
+
             $scope.fetchMessages = function () {
                 $scope.fetchingMessages = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/messages/list",
@@ -382,52 +297,25 @@
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
-                    
+
                     $scope.messages = response.messages;
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.fetchingMessages = false;
                 });
             };
-            
-            $scope.fetchStrokes = function () {
-                $scope.fetchingStrokes = true;
-                
-                var httpRequest = $http({
-                    method: "get",
-                    url: "/api/strokes/list",
-                    params: {
-                    },
-                    data: {
-                    }
-                });
-                
-                httpRequest.success(function(response) {
-                
-                    if (response.error) {
-                        toaster.pop('error', "", response.message);
-                        return;
-                    }
-                    
-                    $scope.strokes = response.strokes;
-                });
-                
-                httpRequest['finally'](function() {
-                    $scope.fetchingStrokes = false;
-                });
-            };
-            
+
             $scope.clearMessages = function () {
                 $scope.clearingMessages = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/messages/clear",
@@ -437,76 +325,103 @@
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.clearingMessages = false;
                 });
             };
-            
-            $scope.clearStrokes = function () {
-                $scope.clearingStrokes = true;
-                
+
+            $scope.fetchGrid = function () {
+                $scope.fetchingGrid = true;
+
                 var httpRequest = $http({
                     method: "get",
-                    url: "/api/strokes/clear",
+                    url: "/api/grid/current",
                     params: {
-                        socketId: $scope.socket.id
                     },
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
+
+                    $scope.grid = response.grid;
+                    $scope.running = response.running;
                 });
-                
+
                 httpRequest['finally'](function() {
-                    $scope.clearingStrokes = false;
+                    $scope.fetchingGrid = false;
                 });
             };
-            
-            $scope.removeStroke = function (strokeId) {
-                $scope.deletingStroke = true;
-                
+
+            $scope.start = function () {
+                $scope.startingSimulation = true;
+
                 var httpRequest = $http({
                     method: "get",
-                    url: "/api/strokes/delete",
+                    url: "/api/grid/start",
                     params: {
                         socketId: $scope.socket.id,
-                        strokeId: strokeId
                     },
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
                 });
-                
+
                 httpRequest['finally'](function() {
-                    $scope.deletingStroke = false;
+                    $scope.startingSimulation = false;
                 });
             };
-            
+
+            $scope.pause = function () {
+                $scope.pausingSimulation = true;
+
+                var httpRequest = $http({
+                    method: "get",
+                    url: "/api/grid/pause",
+                    params: {
+                        socketId: $scope.socket.id,
+                    },
+                    data: {
+                    }
+                });
+
+                httpRequest.success(function(response) {
+
+                    if (response.error) {
+                        toaster.pop('error', "", response.message);
+                        return;
+                    }
+                });
+
+                httpRequest['finally'](function() {
+                    $scope.pausingSimulation = false;
+                });
+            };
+
             $scope.changeName = function () {
                 $scope.changingName = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/users/rename",
@@ -517,48 +432,48 @@
                     data: {
                     }
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
-                    
+
                     $scope.currentUser.username = $scope.currentUser.newUsername;
                     $scope.currentUser.newUsername = "";
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.changingName = false;
                 });
             };
-            
+
             $scope.fetchServerInfo = function () {
                 $scope.fetchingServerInfo = true;
-                
+
                 var httpRequest = $http({
                     method: "get",
                     url: "/api/server/info",
                     params: {},
                     data: {}
                 });
-                
+
                 httpRequest.success(function(response) {
-                
+
                     if (response.error) {
                         toaster.pop('error', "", response.message);
                         return;
                     }
-                    
+
                     $scope.serverInfo = response.serverInfo;
                 });
-                
+
                 httpRequest['finally'](function() {
                     $scope.fetchingServerInfo = false;
                 });
             };
-            
+
             $scope.connect();
         }]);
     </script>
@@ -568,8 +483,8 @@
     <div class="container" ng-controller="mainController">
         <div class="row">
             <div class="col-md-6">
-                <h1>socket.io collaborative drawing</h1>
-                <p>The code is available at <a href="https://github.com/germanger/iosocket-canvas" target="_blank">GitHub</a></p>
+                <h1>Game of Life</h1>
+
             </div>
             <div class="col-md-6">
                 <h2>Change your name ({{currentUser.username}})</h2>
@@ -596,18 +511,6 @@
                         </tr>
                     </table>
                 </div>
-                
-                <h2>Strokes ({{strokes.length}})</h2>
-                <div class="bordered" style="height: 200px; overflow-y: scroll" scroll-glue>
-                    <table class="table table-bordered table-condensed">
-                        <tr ng-repeat="stroke in strokes">
-                            <td>
-                                <strong style="color: {{stroke.lineColor}}">{{stroke.username}} ({{stroke.lineWidth}} px)</strong>
-                                <a href class="pull-right" ng-click="removeStroke(stroke.strokeId)"><span class="glyphicon glyphicon-remove" /></a>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
             </div>
             <div class="col-md-4">
                 <h2>Messages ({{messages.length}})</h2>
@@ -629,14 +532,17 @@
                                     <div ng-switch-when="userChangedName">
                                         <strong style="color: #FF34BA">{{message.data.oldUsername}} is now {{message.data.newUsername}}</strong>
                                     </div>
-                                    <div ng-switch-when="userClearedStrokes">
-                                        <strong style="color: #FF34BA">{{message.user.username}} cleared strokes</strong>
-                                    </div>
-                                    <div ng-switch-when="userDeletedStroke">
-                                        <strong style="color: #FF34BA">{{message.user.username}} deleted a stroke</strong>
-                                    </div>
                                     <div ng-switch-when="userClearedMessages">
                                         <strong style="color: #FF34BA">{{message.user.username}} cleared messages</strong>
+                                    </div>
+                                    <div ng-switch-when="userStartedSimulation">
+                                        <strong style="color: #FF34BA">{{message.user.username}} started simulation</strong>
+                                    </div>
+                                    <div ng-switch-when="userPausedSimulation">
+                                        <strong style="color: #FF34BA">{{message.user.username}} paused simulation</strong>
+                                    </div>
+                                    <div ng-switch-when="userClickedGrid">
+                                        <strong style="color: #FF34BA">{{message.user.username}} clicked on ({{message.x}}, {{message.y}})</strong>
                                     </div>
                                 </div>
                             </td>
@@ -653,46 +559,27 @@
                 </form>
             </div>
             <div class="col-md-6">
-                <h2>Canvas</h2>
-                <canvas class="bordered" width="500" height="400" style="cursor: pointer" drawing-canvas line-color="lineColor" line-width="lineWidth" strokes="strokes" drawing-disabled="!logged" finished-stroke-handler="submitStroke"></canvas>
-                
+                <h2>Grid</h2>
+                <table>
+                    <tr ng-repeat="row in createNumbersArray(grid.rows)">
+                        <td ng-repeat="col in createNumbersArray(grid.cols)" ng-click="submitGridClick(row, col)" style="border: 1px solid black; width: 20px; height: 20px; cursor: pointer; background-color: {{ grid.cells[row][col] ? 'red' : 'white' }}"></td>
+                    </tr>
+                </table>
+
                 <form style="margin-top: 15px" ng-show="logged">
                     <div class="form-group">
+                        <button class="btn btn-default" ng-click="start()" ng-disabled="startingSimulation">Start</button>
+                        <button class="btn btn-default" ng-click="pause()" ng-disabled="pausingSimulation">Pause</button>
                         <button class="btn btn-default" ng-click="clearMessages()" ng-disabled="clearingMessages">Clear messages</button>
-                        <button class="btn btn-default" ng-click="clearStrokes()" ng-disabled="clearingStrokes">Clear strokes</button>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Line width</label>
-                                <select class="form-control" ng-model="lineWidth">
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="8">8</option>
-                                    <option value="10">10</option>
-                                    <option value="15">15</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Line color</label>
-                                <input type="color" class="form-control" ng-model="lineColor" />
-                            </div>
-                        </div>
                     </div>
                 </form>
-			</div>
-        </div>
-        
+
+                <p>Simulation: {{ running ? "Running..." : "Stopped" }}</p>
+
+
         <hr />
-        <p style="text-align: center;">Developed by <a href="http://www.manger.cl" target="_blank">manger.cl</a></p>
-        
+
+
         <toaster-container toaster-options="{'time-out': 3000, 'close-button': true, 'position-class': 'toast-bottom-right'}"></toaster-container>
     </div>
 
