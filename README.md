@@ -1,39 +1,32 @@
-# iosocket-canvas
-A collaborative drawing canvas (with chat)
 
-## Demo
-The master branch is directly deployed to heroku: https://iosocket-canvas.herokuapp.com/
+To run on command prompt:
+1. cd directory.
+2. npm install
+3. node app.js
+4. go to localhost:3000
 
-## Server side
+Works on Heroku.
 
+
+## Server
 - Node.JS
 - Express
 - socket.io
 
-### Routes:
+## files:
 
-- `'/'` : Endpoint for connecting to the socket.io server
-- `'/'` : Also returns `index.html` (angular app)
-- `'/api/users/list'` : List of connected users
-- `'/api/users/rename'` : Expects a `socketId` and a `username`.
-- `'/api/users/updateIsTyping'` : Expects a `socketId` and a `isTyping`.
-- `'/api/messages/list'` : List of messages
-- `'/api/messages/submit'` : Expects a `socketId` parameter and a `body` parameter
-- `'/api/messages/clear'` : Expects a `socketId`. Clears all messages.
-- `'/api/strokes/list'` : List of strokes
-- `'/api/strokes/submit'` : Expects a `socketId` and a JSON body (`req.body`), containing the stroke data
-- `'/api/strokes/clear'` : Expects a `socketId`. Clears all strokes.
-- `'/api/server/info'` : Returns info about the server (eg. port)
+- `'/api/users/updateIsTyping'` :`socketId` and a `isTyping`.
+- `'/api/messages/list'` : The messages
+- `'/api/messages/submit'` : `socketId` parameter and a `body` parameter
+- `'/api/messages/clear'` : `socketId`. Clears all messages.
+- `'/api/grid/current'` : the current grid state
+- `'/api/grid/start'` : Starts simulation
+- `'/api/grid/pause'` : Pauses simulation
+- `'/api/server/info'` : info about the server
+- `'/api/users/list'` : connected users
+- `'/api/users/rename'` :`socketId` and a `username`.
 
-## Client side
-
+## Client
 - Angular
 - Angular's Boostrap UI
-- HTML 5 (canvas)
 - socket.io
-- toaster (notifications)
-- scrollglue (scroll to bottom of divs)
-
-## Screenshot
-
-![Screenshot](https://raw.githubusercontent.com/germanger/iosocket-canvas/master/screenshot.png)
