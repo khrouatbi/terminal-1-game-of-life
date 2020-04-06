@@ -1,3 +1,5 @@
+Game of life multiplayer game has been implemented using the technologies listed.
+
 
 To run on command prompt:
 1. cd directory.
