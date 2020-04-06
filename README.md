@@ -1,5 +1,8 @@
 Game of life multiplayer game has been implemented using the technologies listed.
 
+What is missng to do is to:
+Make a different colort for each player.
+Add the pattern toolbar at the end.
 
 To run on command prompt:
 1. cd directory.
